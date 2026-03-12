@@ -1,0 +1,21 @@
+# Default configuration for SDD Navigator stack
+# Used by Helm templates
+
+namespace: sddnav
+
+api:
+  image: rust-api:latest
+  port: 8080
+  replicas: 1
+
+frontend:
+  image: nextjs:latest
+  port: 3000
+  replicas: 1
+
+postgres:
+  image: postgres:15
+  storage: 100Mi
+  db: sddnav
+  user: sddnav
+  password: sddnav

@@ -1,0 +1,102 @@
+---
+project: test-sddnav-kuber
+
+description: |
+  Specification of SDD Navigator stack deployment.
+  The stack consists of Rust API, PostgreSQL database,
+  and Next.js frontend deployed to Kubernetes using Helm
+  and automated via Ansible.
+
+requirements:
+  - id: REQ-001
+    title: Rust API must be deployed in Kubernetes
+    type: kubernetes
+    implemented_by:
+      - helm/sddnav/templates/api-deployment.yaml
+      - helm/sddnav/templates/api-service.yaml
+    verified_by:
+      - helm lint ./helm/sddnav
+      - helm template test ./helm/sddnav
+    acceptance_criteria:
+      - Deployment/rust-api exists
+      - Service/rust-api exists
+      - API container port is 8080
+    expected_resources:
+      - kind: Deployment
+        name: rust-api
+        checks:
+          container_port: 8080
+      - kind: Service
+        name: rust-api
+        checks:
+          service_port: 80
+
+  - id: REQ-002
+    title: PostgreSQL must be deployed in Kubernetes
+    type: kubernetes
+    implemented_by:
+      - helm/sddnav/templates/postgres-deployment.yaml
+      - helm/sddnav/templates/postgres-service.yaml
+      - helm/sddnav/templates/postgres-pvc.yaml
+    verified_by:
+      - helm lint ./helm/sddnav
+      - helm template test ./helm/sddnav
+    acceptance_criteria:
+      - Deployment/postgres exists
+      - Service/postgres exists
+      - PVC/postgres-pvc exists
+    expected_resources:
+      - kind: Deployment
+        name: postgres
+      - kind: Service
+        name: postgres
+      - kind: PersistentVolumeClaim
+        name: postgres-pvc
+
+  - id: REQ-003
+    title: Next.js frontend must be deployed in Kubernetes
+    type: kubernetes
+    implemented_by:
+      - helm/sddnav/templates/frontend-deployment.yaml
+      - helm/sddnav/templates/frontend-service.yaml
+    verified_by:
+      - helm lint ./helm/sddnav
+      - helm template test ./helm/sddnav
+    acceptance_criteria:
+      - Frontend Deployment exists
+      - Frontend Service exists
+      - API_URL points to rust-api service
+    expected_resources:
+      - kind: Deployment
+        name_template: "{release_name}-frontend"
+        checks:
+          container_port: 3000
+          env:
+            API_URL: "http://rust-api"
+      - kind: Service
+        name_template: "{release_name}-frontend"
+
+  - id: REQ-004
+    title: Deployment must be automated with Ansible
+    type: automation
+    implemented_by:
+      - ansible/deploy.yml
+    verified_by:
+      - ansible-lint ansible/deploy.yml
+    acceptance_criteria:
+      - Playbook contains helm upgrade/install step
+      - Playbook passes ansible-lint
+
+  - id: REQ-005
+    title: Infrastructure code must be validated in CI
+    type: ci
+    implemented_by:
+      - .github/workflows/ci.yml
+    verified_by:
+      - GitHub Actions
+    acceptance_criteria:
+      - CI runs yamllint
+      - CI runs traceability validation
+      - CI builds API and frontend images
+      - CI runs helm lint/template
+      - CI runs ansible-lint

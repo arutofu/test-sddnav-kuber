@@ -1,0 +1,11 @@
+- name: Deploy SDD Navigator
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Install Helm chart
+      ansible.builtin.command:
+        cmd: helm upgrade --install sddnav ./helm/sddnav --namespace sddnav --create-namespace
+        chdir: "{{ playbook_dir }}/.."
+      changed_when: false

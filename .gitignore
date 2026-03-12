@@ -1,0 +1,6 @@
+.env
+node_modules
+target
+*.log
+*.tmp
+.DS_Store

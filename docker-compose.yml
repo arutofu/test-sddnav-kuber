@@ -1,0 +1,32 @@
+services:
+
+  postgres:
+    image: postgres:15
+    container_name: sddnav-postgres
+    environment:
+      POSTGRES_USER: sddnav
+      POSTGRES_PASSWORD: sddnav
+      POSTGRES_DB: sddnav
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  rust-api:
+    build:
+      context: .
+      dockerfile: docker/rust-api/Dockerfile
+    container_name: sddnav-api
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+
+  nextjs:
+    image: nginx:alpine
+    container_name: sddnav-frontend
+    ports:
+      - "3000:80"
+
+volumes:
+  postgres_data:

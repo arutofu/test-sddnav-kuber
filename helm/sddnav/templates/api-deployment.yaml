@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: rust-api
+
+spec:
+  replicas: {{ .Values.api.replicas }}
+
+  selector:
+    matchLabels:
+      app: rust-api
+
+  template:
+    metadata:
+      labels:
+        app: rust-api
+
+    spec:
+      containers:
+        - name: rust-api
+          image: {{ .Values.api.image }}
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 8080

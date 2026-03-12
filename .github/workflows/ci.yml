@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install Python tools
+        run: pip install yamllint ansible ansible-lint pyyaml
+
+      - name: Validate stack specification
+        run: yamllint spec/
+
+      - name: Validate requirements traceability
+        run: python3 scripts/validate_traceability.py
+
+      - name: Build Rust API image
+        run: docker build -t rust-api ./docker/rust-api
+
+      - name: Build frontend image
+        run: docker build -t nextjs ./docker/nextjs
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+
+      - name: Helm lint
+        run: helm lint ./helm/sddnav
+
+      - name: Helm template
+        run: helm template test ./helm/sddnav
+
+      - name: Lint ansible
+        run: ansible-lint ansible/deploy.yml
